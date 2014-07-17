@@ -38,12 +38,12 @@
               <ul class="dropdown-menu" role="menu">
                 <li><a ng-click="setTaskFilter({})">All</a></li>
                 <li class="divider"></li>
-                <li class="dropdown-header">People</li>
+                <li class="dropdown-header">Owner</li>
                 <li ng-repeat="owner in owners">
                     <a ng-click="setTaskFilter({owner:owner })">{{owner}}</a>
                 </li>
                 <li class="divider"></li>
-                <li class="dropdown-header">Teams</li>
+                <li class="dropdown-header">Responsible Team</li>
                 <li ng-repeat="team in teams">
                     <a ng-click="setTaskFilter({responsibleteam: team })">{{team}}</a>
                 </li>
