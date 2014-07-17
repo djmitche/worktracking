@@ -14,17 +14,22 @@
 </head>
 <body ng-app="work" ng-controller="WorkController">
     <div class="navbar navbar-default navbar-static-top" role="navigation">
-      <div class="container">
+      <div class="container-fluid">
         <div class="navbar-header">
-          <a class="navbar-brand" href="#">Work Tracking</a>
+          <a class="navbar-brand" href="https://github.com/djmitche/worktracking">Work Tracking</a>
         </div>
         <div class="navbar-collapse collapse">
           <ul class="nav navbar-nav">
-            <li class="active"><a href="#">Home</a></li>
+            <li class="dropdown">
+              <a href="#" class="dropdown-toggle" data-toggle="dropdown">Links
+                <span class="caret"></span></a>
+              <ul class="dropdown-menu" role="menu">
+                <li ><a href="https://docs.google.com/a/mozilla.com/spreadsheets/d/1CiQAc5pGpV-sFFVP8-5dfnzvTxh-tStAbj32XqiO_Kg/edit#gid=825855451">Source Data</a></li>
+              </ul>
           </ul>
           <ul class="nav navbar-nav navbar-right">
             <li class="dropdown">
-            <a href="#" class="dropdown-toggle" data-toggle="dropdown">Who:
+              <a href="#" class="dropdown-toggle" data-toggle="dropdown">Filter
                 <span ng-show="taskFilter.responsibleteam">team={{taskFilter.responsibleteam}}</span>
                 <span ng-show="taskFilter.owner">owner={{taskFilter.owner}}</span>
                 <span class="caret"></span></a>
@@ -42,6 +47,7 @@
                 </li>
               </ul>
             </li>
+            <li class=><a href="#" class="glyphicon glyphicon-refresh" ng-click="refresh()"></a></li>
           </ul>
         </div><!--/.nav-collapse -->
       </div>

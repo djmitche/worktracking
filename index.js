@@ -27,40 +27,31 @@ angular.module('work').controller('WorkController', function ($scope, unique, se
     // current filter for tasks
     $scope.taskFilter = {};
 
-    $scope.newTableData = function(data, tabletop) {
-        var sheets = {
-            wip: data['Work in Progress'],
-            upcoming: data['Near-Term Upcoming Work'],
-            completed: data['Completed Work']}
-
-        var tasks = [];
-        angular.forEach(sheets, function(sheet, sheet_name) {
-            angular.forEach(sheet.elements, function(row) {
-                if (row.work) {
-                    row.sheet = sheet_name;
-                    tasks.push(row);
-                }
-            });
-        });
-        $scope.tasks = tasks;
-
-        console.log(unique(select(tasks, 'owner')));
-        $scope.owners = unique(select(tasks, 'owner'));
-        $scope.owners.sort();
-
-        $scope.teams = unique(select(tasks, 'responsibleteam'))
-        $scope.teams.sort();
-    };
-
-    $scope.setTaskFilter = function(filter) {
-        $scope.taskFilter = filter;
-    };
-
-    Tabletop.init({
+    var tabletop = Tabletop.init({
         key: 'https://docs.google.com/spreadsheets/d/1CiQAc5pGpV-sFFVP8-5dfnzvTxh-tStAbj32XqiO_Kg/pubhtml',
         callback: function(data, tabletop) {
             $scope.$apply(function() {
-                $scope.newTableData(data, tabletop);
+                var sheets = {
+                    wip: data['Work in Progress'],
+                    upcoming: data['Near-Term Upcoming Work'],
+                    completed: data['Completed Work']}
+
+                var tasks = [];
+                angular.forEach(sheets, function(sheet, sheet_name) {
+                    angular.forEach(sheet.elements, function(row) {
+                        if (row.work) {
+                            row.sheet = sheet_name;
+                            tasks.push(row);
+                        }
+                    });
+                });
+                $scope.tasks = tasks;
+
+                $scope.owners = unique(select(tasks, 'owner'));
+                $scope.owners.sort();
+
+                $scope.teams = unique(select(tasks, 'responsibleteam'))
+                $scope.teams.sort();
             });
         },
         wanted: [
@@ -68,7 +59,15 @@ angular.module('work').controller('WorkController', function ($scope, unique, se
             'Work in Progress',
             'Completed Work',
         ],
-    })
+    });
+
+    $scope.refresh = function() {
+        tabletop.fetch();
+    };
+
+    $scope.setTaskFilter = function(filter) {
+        $scope.taskFilter = filter;
+    };
 });
 
 angular.module('work').directive('task', function() {
