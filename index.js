@@ -31,6 +31,7 @@ angular.module('work').controller('WorkController', function ($scope, unique, se
         key: 'https://docs.google.com/spreadsheets/d/1CiQAc5pGpV-sFFVP8-5dfnzvTxh-tStAbj32XqiO_Kg/pubhtml',
         callback: function(data, tabletop) {
             $scope.$apply(function() {
+                $scope.refreshing = false;
                 var sheets = {
                     wip: data['Work in Progress'],
                     upcoming: data['Near-Term Upcoming Work'],
@@ -59,15 +60,19 @@ angular.module('work').controller('WorkController', function ($scope, unique, se
             'Work in Progress',
             'Completed Work',
         ],
+        wait: true,
     });
 
     $scope.refresh = function() {
+        $scope.refreshing = true;
         tabletop.fetch();
     };
 
     $scope.setTaskFilter = function(filter) {
         $scope.taskFilter = filter;
     };
+
+    $scope.refresh();
 });
 
 angular.module('work').directive('task', function() {

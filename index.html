@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
     <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap-theme.min.css">
+    <link rel="stylesheet" href="work.css">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
     <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
     <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.0.1/angular.js"></script>
@@ -47,7 +48,9 @@
                 </li>
               </ul>
             </li>
-            <li class=><a href="#" class="glyphicon glyphicon-refresh" ng-click="refresh()"></a></li>
+            <li><a href="#"><span id="refresh-button"
+                   ng-class="{'icon-refresh-animate': refreshing}"
+                   class="glyphicon glyphicon-refresh" ng-click="refresh()"></span></a></li>
           </ul>
         </div><!--/.nav-collapse -->
       </div>
