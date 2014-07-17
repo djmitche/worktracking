@@ -1,0 +1,60 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
+    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap-theme.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+    <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
+    <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.0.1/angular.js"></script>
+    <script src="tabletop.js"></script>
+    <script src="index.js"></script>
+    <title>Work Tracking</title>
+</head>
+<body ng-app="work" ng-controller="WorkController">
+    <div class="navbar navbar-default navbar-static-top" role="navigation">
+      <div class="container">
+        <div class="navbar-header">
+          <a class="navbar-brand" href="#">Work Tracking</a>
+        </div>
+        <div class="navbar-collapse collapse">
+          <ul class="nav navbar-nav">
+            <li class="active"><a href="#">Home</a></li>
+          </ul>
+          <ul class="nav navbar-nav navbar-right">
+            <li class="dropdown">
+            <a href="#" class="dropdown-toggle" data-toggle="dropdown">Who:
+                <span ng-show="taskFilter.responsibleteam">team={{taskFilter.responsibleteam}}</span>
+                <span ng-show="taskFilter.owner">owner={{taskFilter.owner}}</span>
+                <span class="caret"></span></a>
+              <ul class="dropdown-menu" role="menu">
+                <li><a ng-click="setTaskFilter({})">All</a></li>
+                <li class="divider"></li>
+                <li class="dropdown-header">People</li>
+                <li ng-repeat="owner in owners">
+                    <a ng-click="setTaskFilter({owner:owner })">{{owner}}</a>
+                </li>
+                <li class="divider"></li>
+                <li class="dropdown-header">Teams</li>
+                <li ng-repeat="team in teams">
+                    <a ng-click="setTaskFilter({responsibleteam: team })">{{team}}</a>
+                </li>
+              </ul>
+            </li>
+          </ul>
+        </div><!--/.nav-collapse -->
+      </div>
+    </div>
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-xs-4" ng-repeat="sheet in ['upcoming', 'wip', 'completed']">
+                <h2>{{sheet}}</h2>
+                <ul class="list-unstyled">
+                    <li ng-repeat="task in tasks|filter:taskFilter|filter:{sheet:sheet}" task="task"></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
