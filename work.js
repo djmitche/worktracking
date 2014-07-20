@@ -1,4 +1,6 @@
-angular.module('work', ['xc.indexedDB']);
+angular.module('work', ['xc.indexedDB', 'googleApi']);
+
+/* configure */
 
 angular.module('work').config(function ($indexedDBProvider) {
     $indexedDBProvider
@@ -7,6 +9,21 @@ angular.module('work').config(function ($indexedDBProvider) {
             db.createObjectStore('settings', {keyPath: 'setting'});
     });
 });
+
+angular.module('work').config(function(googleLoginProvider) {
+    googleLoginProvider.configure({
+        /* XXX this clientId is for people.v.igoro.us */
+        clientId: '267240285195-7bl2rd646k7vuag1h3rd6nk47dsg5df9.apps.googleusercontent.com',
+        scopes: ['https://spreadsheets.google.com/feeds']
+    });
+})
+
+angular.module('work').config(function($httpProvider) {
+    $httpProvider.defaults.useXDomain = true;
+    delete $httpProvider.defaults.headers.common['X-Requested-With'];
+});
+
+/* utilities */
 
 angular.module('work').factory('unique', function() {
     return function(array) {
@@ -27,8 +44,10 @@ angular.module('work').factory('select', function() {
     };
 });
 
+/* controllers */
+
 angular.module('work').controller('WorkController',
-function ($scope, $indexedDB, $timeout, unique, select) {
+function ($scope, $indexedDB, $http, googleLogin, unique, select) {
     // tasks: rows from the sheet's with 'task.sheet' indicating the sheet
     $scope.tasks = [];
     // the set of all owners
@@ -36,9 +55,14 @@ function ($scope, $indexedDB, $timeout, unique, select) {
     // current filter for tasks
     $scope.taskFilter = {};
 
+    // app status
+    $scope.error = null;
+    $scope.refreshing = true;
+    $scope.authenticated = false;
+
     // fetch data from Google Sheets
     // TODO: should be a service
-    var tabletop = Tabletop.init({
+    var x = {
         key: 'https://docs.google.com/spreadsheets/d/1CiQAc5pGpV-sFFVP8-5dfnzvTxh-tStAbj32XqiO_Kg/pubhtml',
         callback: function(data, tabletop) {
             $scope.$apply(function() {
@@ -72,13 +96,13 @@ function ($scope, $indexedDB, $timeout, unique, select) {
             'Completed Work',
         ],
         wait: true,
-    });
+    };
 
     // settings handling
+    // TODO: should be a service
     var settingsStore = $indexedDB.objectStore('settings');
     var getSetting = function(setting) {
         return settingsStore.find(setting).then(function(so) {
-            console.log("get", so);
             if (so) {
                 return so.value;
             }
@@ -88,15 +112,22 @@ function ($scope, $indexedDB, $timeout, unique, select) {
     };
 
     var setSetting = function(setting, value) {
-        console.log("set", setting, value);
-        return settingsStore.upsert({'setting': setting, 'value': value}).then(
-            function() { console.log("set complete");
-        });
+        return settingsStore.upsert({'setting': setting, 'value': value});
     };
 
     $scope.refresh = function() {
         $scope.refreshing = true;
-        tabletop.fetch();
+        $http({
+            method: 'GET',
+            url: 'https://spreadsheets.google.com/feeds/spreadsheets/private/full',
+        }).success(function (data, status, headers, config) {
+            console.log("GOOD");
+            $scope.rawxml = data;
+            $scope.refreshing = false;
+        }).error(function (data, status, headers, config) {
+            console.log("BAD");
+            $scope.refreshing = false;
+        });
     };
 
     $scope.setTaskFilter = function(filter) {
@@ -105,13 +136,25 @@ function ($scope, $indexedDB, $timeout, unique, select) {
     };
 
     // startup stuff, delayed until the controller is actually constructed
-    $timeout(function () {
-        $scope.refresh();
+    $scope.$on('google:ready', function() {
         getSetting('taskFilter').then(function (setting) {
             $scope.taskFilter = setting;
         });
-    }, 0);
+
+        // the promise returned here does not appear to fire, ever
+        googleLogin.login();
+    });
+
+    $scope.$on('google:authenticated', function() {
+        $scope.authenticated = true;
+        var tok = gapi.auth.getToken();
+        $http.defaults.headers.common.Authorization = tok.token_type + ' ' + tok.access_token;
+        $scope.refresh();
+        $scope.$apply();
+    });
 });
+
+/* directives */
 
 angular.module('work').directive('task', function() {
     return {
