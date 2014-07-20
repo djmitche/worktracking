@@ -1,14 +1,6 @@
-angular.module('work', ['xc.indexedDB', 'googleApi']);
+angular.module('work', ['xc.indexedDB', 'googleApi', 'xml']);
 
 /* configure */
-
-angular.module('work').config(function ($indexedDBProvider) {
-    $indexedDBProvider
-      .connection('work')
-      .upgradeDatabase(1, function(event, db, tx){
-            db.createObjectStore('settings', {keyPath: 'setting'});
-    });
-});
 
 angular.module('work').config(function(googleLoginProvider) {
     googleLoginProvider.configure({
@@ -18,9 +10,19 @@ angular.module('work').config(function(googleLoginProvider) {
     });
 })
 
+angular.module('work').config(function ($indexedDBProvider) {
+    $indexedDBProvider
+      .connection('work')
+      .upgradeDatabase(1, function(event, db, tx){
+            db.createObjectStore('settings', {keyPath: 'setting'});
+    });
+});
+
 angular.module('work').config(function($httpProvider) {
     $httpProvider.defaults.useXDomain = true;
     delete $httpProvider.defaults.headers.common['X-Requested-With'];
+    // use the XML interceptor from angular-xml
+    $httpProvider.interceptors.push('xmlHttpInterceptor');
 });
 
 /* utilities */
@@ -44,10 +46,42 @@ angular.module('work').factory('select', function() {
     };
 });
 
+/* services */
+
+angular.module('work').service('googleSheets', function($http, $q) {
+    var headers = {};
+    var initialized = $q.defer();
+
+    // utilities
+    var get = function(url) {
+        return initialized.promise.then(function() {
+            return $http({method: 'GET', url: url, headers: headers});
+        });
+    };
+
+    // called when gapi.auth is ready and logged in
+    this.initialize = function() {
+        var tok = gapi.auth.getToken();
+        headers.Authorization = tok.token_type + ' ' + tok.access_token;
+        initialized.resolve();
+    };
+
+    this.listSheets = function() {
+        var p = get('https://spreadsheets.google.com/feeds/spreadsheets/private/full');
+        return p.then(function (response) {
+            return response.xml.find('entry').map(function (i, elt) {
+                elt = angular.element(elt);
+                return {title: elt.find('title').text(), id: elt.find('id').text()};
+            });
+        });
+    };
+    return this;
+});
+
 /* controllers */
 
 angular.module('work').controller('WorkController',
-function ($scope, $indexedDB, $http, googleLogin, unique, select) {
+function ($scope, $indexedDB, googleLogin, googleSheets, unique, select) {
     // tasks: rows from the sheet's with 'task.sheet' indicating the sheet
     $scope.tasks = [];
     // the set of all owners
@@ -117,16 +151,8 @@ function ($scope, $indexedDB, $http, googleLogin, unique, select) {
 
     $scope.refresh = function() {
         $scope.refreshing = true;
-        $http({
-            method: 'GET',
-            url: 'https://spreadsheets.google.com/feeds/spreadsheets/private/full',
-        }).success(function (data, status, headers, config) {
-            console.log("GOOD");
-            $scope.rawxml = data;
-            $scope.refreshing = false;
-        }).error(function (data, status, headers, config) {
-            console.log("BAD");
-            $scope.refreshing = false;
+        googleSheets.listSheets().then(function (sheets) {
+            console.log('sheets', sheets);
         });
     };
 
@@ -147,8 +173,7 @@ function ($scope, $indexedDB, $http, googleLogin, unique, select) {
 
     $scope.$on('google:authenticated', function() {
         $scope.authenticated = true;
-        var tok = gapi.auth.getToken();
-        $http.defaults.headers.common.Authorization = tok.token_type + ' ' + tok.access_token;
+        googleSheets.initialize();
         $scope.refresh();
         $scope.$apply();
     });

@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="work.css">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
     <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
-    <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.0.1/angular.js"></script>
+    <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.2.20/angular.js"></script>
     <script src="angular-googleapi.js"></script>
     <script src="angular-xml.js"></script>
     <script src="indexeddb.js"></script>
@@ -61,15 +61,10 @@
     <div class="container-fluid" ng-show="error">
         <div class="alert alert-danger">{{error}}</div>
     </div>
-    <div class="container-fluid" ng-hide="authenticated">
+    <div class="container-fluid" ng-show="!error && !authenticated">
         <div class="alert alert-info">Authenticating to Google</div>
     </div>
-    <div class="container-fluid" ng-show="authenticated">
-        <div class="row">
-            <pre class="col-xs-12">
-                {{rawxml}}
-            </pre>
-        </div>
+    <div class="container-fluid" ng-show="!error && authenticated">
         <div class="row">
             <div class="col-xs-4" ng-repeat="sheet in ['upcoming', 'wip', 'completed']">
                 <h2>{{sheet}}</h2>
