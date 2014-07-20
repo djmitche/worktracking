@@ -26,9 +26,18 @@ Principles
 * Absolutely no server-side state: any state needs to be stored in an existing service such as Google Sheets or Bugzilla.
 * 80/20: make 80% of the use-cases as easy as possible, and leave the other 20% to manual intervention.
 
-Implementation
---------------
+Organization
+------------
 
 Work Tracking is implemented as an AngularJS application.
 It uses features of modern browsers, including IndexedDB.
 In general, if a feature is available in the latest Chrome and Firefox releases, it's OK to use it here with no fallback.
+
+Implementation
+==============
+
+Requirements
+------------
+
+* https://github.com/gaslight/angular-googleapi (`angular-googleapi.js`)
+* https://github.com/webcss/angular-indexedDB (`indexeddb.js`)
