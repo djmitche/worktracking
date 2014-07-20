@@ -66,6 +66,17 @@
     </div>
     <div class="container-fluid" ng-show="!error && authenticated">
         <div class="row">
+            <div class="col-xs-12">
+                <table>
+                    <tr ng-repeat='sheet in sheets'>
+                        <td>{{sheet.id}}</td>
+                        <td>{{sheet.title}}</td>
+                        <td>{{sheet.feed}}</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        <div class="row">
             <div class="col-xs-4" ng-repeat="sheet in ['upcoming', 'wip', 'completed']">
                 <h2>{{sheet}}</h2>
                 <ul class="list-unstyled">

@@ -2,6 +2,8 @@ angular.module('work', ['xc.indexedDB', 'googleApi', 'xml']);
 
 /* configure */
 
+angular.module('work').value('tracking_sheet_id', "1CiQAc5pGpV-sFFVP8-5dfnzvTxh-tStAbj32XqiO_Kg");
+
 angular.module('work').config(function(googleLoginProvider) {
     googleLoginProvider.configure({
         /* XXX this clientId is for people.v.igoro.us */
@@ -55,7 +57,11 @@ angular.module('work').service('googleSheets', function($http, $q) {
     // utilities
     var get = function(url) {
         return initialized.promise.then(function() {
-            return $http({method: 'GET', url: url, headers: headers});
+            return $http({
+                method: 'GET',
+                url: url,
+                headers: headers,
+                useXDomain: true});
         });
     };
 
@@ -66,15 +72,59 @@ angular.module('work').service('googleSheets', function($http, $q) {
         initialized.resolve();
     };
 
+    // API methods -- all return a promise
+
     this.listSheets = function() {
         var p = get('https://spreadsheets.google.com/feeds/spreadsheets/private/full');
         return p.then(function (response) {
             return response.xml.find('entry').map(function (i, elt) {
                 elt = angular.element(elt);
-                return {title: elt.find('title').text(), id: elt.find('id').text()};
+                var rv = {};
+                rv.title = elt.find('title').text();
+                rv.key = elt.find('id').text().split('/').reverse()[0];
+                elt.find('link').each(function (i, elt) {
+                    elt = angular.element(elt);
+                    if (elt.attr('rel') == 'http://schemas.google.com/spreadsheets/2006#worksheetsfeed') {
+                        rv['feed_url'] = elt.attr('href');
+                    }
+                });
+                return rv;
             });
         });
     };
+
+    this.getSheetUrlByTitle = function(title) {
+        return this.listSheets().then(function (sheets) {
+            var url = null;
+            angular.forEach(sheets, function (sheet) {
+                if (sheet.title == title) {
+                    url = sheet.feed_url;
+                }
+            });
+            return url;
+        });
+    };
+
+    this.getWorksheets = function(url) {
+        var p = get(url);
+        return p.then(function (response) {
+            console.log(response.data);
+        });
+    };
+
+    this.getSheetRows = function(key) {
+        var p = get('https://spreadsheets.google.com/feeds/worksheets/' + key + '/private/full');
+        return p.then(function (response) {
+            return response.xml.find('entry').map(function (i, elt) {
+                elt = angular.element(elt);
+                var rv = {};
+                rv.work = elt.find('gsx:work').text();
+                rv.key = elt.find('id').text().split('/').reverse()[0];
+                return rv;
+            });
+        });
+    };
+
     return this;
 });
 
@@ -151,8 +201,16 @@ function ($scope, $indexedDB, googleLogin, googleSheets, unique, select) {
 
     $scope.refresh = function() {
         $scope.refreshing = true;
-        googleSheets.listSheets().then(function (sheets) {
-            console.log('sheets', sheets);
+        // temp sheet
+        //var sheet_id = '1CiQAc5pGpV-sFFVP8-5dfnzvTxh-tStAbj32XqiO_Kg';
+        //var sheet_id = '1mgk0ExxeKN_0IwF3ZFkvv2FVevIlW-G-EsFjvZYgM30';
+        googleSheets.getSheetUrlByTitle('My Spreadsheet').then(function (url) {
+            console.log(url);
+            googleSheets.getWorksheets(url).then(function (sheets) {
+                console.log(sheets);
+            }, function (err) {
+                $scope.error = "ERROR: " + err.data;
+            });
         });
     };
 
