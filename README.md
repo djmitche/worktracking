@@ -39,5 +39,5 @@ Implementation
 Requirements
 ------------
 
-* https://github.com/gaslight/angular-googleapi (`angular-googleapi.js`)
+* https://github.com/gaslight/angular-googleapi (`angular-googleapi.js`) -- NOTE that this is a modified version; see https://github.com/gaslight/angular-googleapi/pull/8
 * https://github.com/webcss/angular-indexedDB (`indexeddb.js`)
